@@ -1,11 +1,22 @@
 #/usr/bin/python3
 
+def printBoard(board):
+    for i in range(3):
+        for j in range(1,4):
+            print(board[i*3+j]+" ",end="")
+        print("\n")
+    pass
+
 if __name__ == "__main__":
     print("Welcome to TurbiTacToe")
 
     # setup section
     previous_state = "SETUP"
     current_state = "MENU"
+
+    # create game board
+    board = dict.fromkeys(range(1, 10),"-")
+
 
     while(True):
 
@@ -17,6 +28,8 @@ if __name__ == "__main__":
                 exit()
 
         elif current_state == "GAME":
+            printBoard(board)
+            input()
             pass
 
         elif current_state == "GAMEOVER":
