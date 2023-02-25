@@ -1,7 +1,11 @@
 #/usr/bin/python3
 
 import pygame
+import math
 
+WINDOW_WIDTH = 720
+WINDOW_HEIGHT = 720
+BUTTON_RADIUS = WINDOW_HEIGHT/6-20
 
 def winnerFound(board):
     for i in range(1,10,3):
@@ -26,18 +30,48 @@ def switchPlayer(players, current_player):
     return current_player
 
 
-def notValid(board, play):
+def validPlay(board, play):
     if play in range(1,10) and board[play] in range(1,10):
-        return False
-    else:
         return True
+    
+    return False
 
 
-def player_play(board, player):
+def player_play_cli(board, player):
     play=-1
-    while notValid(board, play):
+    while not validPlay(board, play):
         play = int(input("Player " + player + ", choose position to play from 1 to 9 "))
     board[play] = player
+
+
+def euclideanDistance(pointA, pointB):
+    dist = math.sqrt((pointA[0]-pointB[0])**2+(pointA[1]-pointB[1])**2)
+    #print(dist)
+    return dist
+
+
+def getPressedButton(button_positions):
+    coordinates = pygame.mouse.get_pos()
+    print("Mouse click on coordinates ",coordinates)
+    for idx, position in enumerate(button_positions):
+        if euclideanDistance(coordinates, position) < BUTTON_RADIUS:
+            print("You have pressed button number ", idx+1)
+            return idx
+    return -1
+
+
+def player_play_gui(board, player, events, window):
+    window_width, window_height = window.get_size()
+    button_positions = [(x,y) for y in range(int(window_height/6),int(window_height),int(window_height/3)) for x in range(int(window_width/6),int(window_width),int(window_width/3))]
+
+    for event in events:
+        if event.type == pygame.MOUSEBUTTONUP:
+            button_idx = getPressedButton(button_positions)
+            if validPlay(board, button_idx+1):
+                board[button_idx+1] = player
+                return True, board
+    
+    return False, board
 
 
 def printBoard(board):
@@ -46,10 +80,12 @@ def printBoard(board):
             print(str(board[i*3+j])+" ",end="")
         print("\n")
 
+
 def setupGame(board, current_player, players):
     board = dict(zip(range(1, 10), range(1, 10)))
     current_player = players[0]
     return board, current_player
+
 
 def handle_general_events(events):
     for event in events:
@@ -59,8 +95,7 @@ def handle_general_events(events):
     return events
 
 def init_pygame_window(width, height):
-    window = pygame.display.set_mode((win_width,win_height))
-    
+    window = pygame.display.set_mode((width, height))
     return window
 
 
@@ -71,7 +106,7 @@ if __name__ == "__main__":
     # Initialize pygame
     pygame.init()
     clock = pygame.time.Clock()
-    init_pygame_window(720,720)
+    window = init_pygame_window(WINDOW_WIDTH,WINDOW_HEIGHT)
 
 
     # setup section
@@ -97,14 +132,18 @@ if __name__ == "__main__":
                 exit()
 
         elif current_state == "GAME":
-            player_play(board, current_player)
-            printBoard(board)
+            valid_play = False
+            valid_play, board = player_play_gui(board, current_player, events, window)
+            # player_play_cli(board, current_player)
 
-            if winnerFound(board):
-                print("Player " + current_player + " won!")
-                current_state = "GAMEOVER"
+            if valid_play:
+                printBoard(board)
 
-            current_player = switchPlayer(players, current_player)
+                if winnerFound(board):
+                    print("Player " + current_player + " won!")
+                    current_state = "GAMEOVER"
+                
+                current_player = switchPlayer(players, current_player)
 
         elif current_state == "GAMEOVER":
             option = input("Press Y to play again. Any other key to exit.").upper()
