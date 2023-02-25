@@ -1,5 +1,8 @@
 #/usr/bin/python3
 
+import pygame
+
+
 def winnerFound(board):
     for i in range(1,10,3):
         if board[i] == board[i+1] == board[i+2] and board[i] not in range(1,10):
@@ -48,10 +51,28 @@ def setupGame(board, current_player, players):
     current_player = players[0]
     return board, current_player
 
+def handle_general_events(events):
+    for event in events:
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+    return events
+
+def init_pygame_window(width, height):
+    window = pygame.display.set_mode((win_width,win_height))
+    
+    return window
 
 
 if __name__ == "__main__":
+
     print("Welcome to TurbiKreuzToe")
+
+    # Initialize pygame
+    pygame.init()
+    clock = pygame.time.Clock()
+    init_pygame_window(720,720)
+
 
     # setup section
     previous_state = "SETUP"
@@ -65,7 +86,8 @@ if __name__ == "__main__":
     board, current_player = setupGame(board, current_player, players)
 
     while(True):
-
+        events = pygame.event.get()
+        handle_general_events(events)
         if current_state == "MENU":
             option = input("Press S to start playing. Any other key to exit.").upper()
             if option == "S":
