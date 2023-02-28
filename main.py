@@ -392,7 +392,12 @@ if __name__ == "__main__":
     pygame.init()
     clock = pygame.time.Clock()
     window = initPygameWindow(WINDOW_WIDTH,WINDOW_HEIGHT)
+    unlock_sound = pygame.mixer.Sound("assets/mixkit-unlock-game-notification-253.wav")
+    music = pygame.mixer.Sound("assets/mixkit-game-level-music-689.wav")
+    victory_sound = pygame.mixer.Sound("assets/mixkit-winning-an-extra-bonus-2060.wav")
+    draw_sound = pygame.mixer.Sound("assets/mixkit-player-losing-or-failing-2042.wav")
 
+    pygame.mixer.Sound.play(music).set_volume(0.3)
 
     # setup section
     previous_state = "SETUP"
@@ -415,6 +420,7 @@ if __name__ == "__main__":
             valid_input = False
             valid_input, option = getMenuInput_gui(window)
             if valid_input:
+                pygame.mixer.Sound.play(unlock_sound)
                 if option == "S":
                     printBoard_cli(board)
                     printBoard_gui(board, window, players, playerSymbols)
@@ -428,6 +434,7 @@ if __name__ == "__main__":
             valid_play, board = playerPlay_gui(board, current_player, events, window)
 
             if valid_play:
+                pygame.mixer.Sound.play(unlock_sound)
                 printBoard_cli(board)
                 printBoard_gui(board, window, players, playerSymbols)
 
@@ -435,10 +442,14 @@ if __name__ == "__main__":
                     print("Player " + current_player + " won!")
                     current_state = "GAMEOVER"
                     printEndMenu_gui(window, players.index(current_player)+1)
+                    pygame.mixer.Sound.stop(music)
+                    pygame.mixer.Sound.play(victory_sound)
                 elif noOneWins(board):
                     print("It's a draw!")
                     current_state = "GAMEOVER"
                     printEndMenu_gui(window, 0)
+                    pygame.mixer.Sound.stop(music)
+                    pygame.mixer.Sound.play(draw_sound)
 
                 current_player = switchPlayer(players, current_player)
 
@@ -447,11 +458,13 @@ if __name__ == "__main__":
             valid_input = False
             valid_input, option = getMenuInput_gui(window)
             if valid_input:
+                pygame.mixer.Sound.play(unlock_sound)
                 if option == "S":
                     print("Cool! Starting a new game!")
                     board, current_player = setupGame(board, current_player, players)
                     printBoard_gui(board, window, players, playerSymbols)
                     printBoard_cli(board)
+                    pygame.mixer.Sound.play(music).set_volume(0.3)
                     current_state = "GAME"
                 else :
                     exit()
