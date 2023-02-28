@@ -8,6 +8,90 @@ WINDOW_WIDTH = 720
 WINDOW_HEIGHT = 720
 BUTTON_RADIUS = WINDOW_HEIGHT/6-20
 
+def playerPlay_gui(board, player, events, window):
+    """
+    Gets player input (mouse click) from the GUI
+
+    Parameters
+    ----------
+    board : dict, required
+    player : char, required
+    events : list, required
+    window : Surface, required
+
+    Returns
+    -------
+    Bool, dict
+    """
+    button_positions = getGameButtonPositions(window)
+
+    for event in events:
+        if event.type == pygame.MOUSEBUTTONUP:
+            button_idx = getPressedButton(button_positions)
+            if validPlay(board, button_idx+1):
+                board[button_idx+1] = player
+                return True, board
+    
+    return False, board
+
+def printBoard_gui(board, window, players, playerSymbols):
+    """
+    Prints the board in the pygame window
+
+    Parameters
+    ----------
+    board : dict, required
+    window : Surface, required
+    players : list, required
+    playerSymbols : dict, required 
+
+    """
+    window.fill((255,255,255))
+    board_art = pygame.image.load("assets/board.png").convert()
+    window.blit(board_art, (0,0))
+    button_positions = getGameButtonPositions(window)
+    for i in range(1,10):
+        for player in players:
+            if board[i] == player:
+                position = (button_positions[i-1][0]-playerSymbols[player].get_rect().height/2,button_positions[i-1][1]-playerSymbols[player].get_rect().width/2)
+                window.blit(playerSymbols[player], position)
+    
+    pygame.display.update()
+
+
+def getGameButtonPositions(window):
+    """
+    Gets list of button positions
+
+    Parameters
+    ----------
+    window : Surface, required
+
+    Returns
+    -------
+    list
+    """
+    window_width, window_height = window.get_size()
+    return [(x,y) for y in range(int(window_height/6),int(window_height),int(window_height/3)) for x in range(int(window_width/6),int(window_width),int(window_width/3))]
+
+
+def loadSymbolDictionary_gui(players):
+    """
+    Loads the player images into a dictionary
+
+    Parameters
+    ----------
+    players : list, required
+
+    Returns
+    -------
+    dict
+    """
+    cross = pygame.image.load("assets/cross_white.png").convert()
+    circle = pygame.image.load("assets/circle_white.png").convert()
+    return {players[0]:cross,players[1]: circle}
+
+
 def getMenuInput_gui(window):
     """
     Gets player input from the menu
@@ -272,6 +356,8 @@ if __name__ == "__main__":
     current_state = "MENU"
     board = None
     players = ['T', 'K']
+    playerSymbols = loadSymbolDictionary_gui(players)
+
     current_player = None
 
     board, current_player = setupGame(board, current_player, players)
@@ -287,13 +373,16 @@ if __name__ == "__main__":
             valid_input, option = getMenuInput_gui(window)
             if valid_input:
                 if option == "S":
+                    printBoard_cli(board)
+                    printBoard_gui(board, window, players, playerSymbols)
                     current_state = "GAME"
                 else:
                     exit()
 
         elif current_state == "GAME":
-            printBoard_cli(board)
-            board = playerPlay_cli(board, current_player)
+            #board = playerPlay_cli(board, current_player)
+            valid_play = False
+            valid_play, board = playerPlay_gui(board, current_player, events, window)
 
             if winnerFound(board):
                     print("Player " + current_player + " won!")
