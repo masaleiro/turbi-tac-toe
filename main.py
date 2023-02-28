@@ -6,7 +6,50 @@ import math
 
 WINDOW_WIDTH = 720
 WINDOW_HEIGHT = 720
-BUTTON_RADIUS = WINDOW_HEIGHT/6-20
+BUTTON_RADIUS = WINDOW_HEIGHT/6
+
+def noOneWins(board):
+    """
+    Analyzes the board to check if there are places left to play (Draw)
+    If no one wins returns True. Otherwise, returns False
+
+    Parameters
+    ----------
+    board : dict, required
+
+    Returns
+    -------
+    Bool
+    """
+    count = 0
+    for i in range(1,10):
+        if board[i] in range (1,10):
+            count += 1
+    if count > 0:
+        return False
+    return True
+
+
+
+def printEndMenu_gui(window, winner):
+    """
+    Prints the ending menu in the pygame window
+
+    Parameters
+    ----------
+    window : Surface, required
+    winner : char, required
+    """
+    window.fill((255,255,255))
+    if winner == 0:
+        result = pygame.image.load("assets/end_menu_draw.png").convert()
+    elif winner == 1:
+        result = pygame.image.load("assets/end_menu_1win.png").convert()
+    elif winner == 2: 
+        result = pygame.image.load("assets/end_menu_2win.png").convert()
+    window.blit(result, (0,0))
+    pygame.display.update()
+
 
 def playerPlay_gui(board, player, events, window):
     """
@@ -23,7 +66,6 @@ def playerPlay_gui(board, player, events, window):
     -------
     Bool, dict
     """
-    window_width, window_height = window.get_size()
     button_positions = getGameButtonPositions(window)
 
     for event in events:
@@ -385,21 +427,34 @@ if __name__ == "__main__":
             valid_play = False
             valid_play, board = playerPlay_gui(board, current_player, events, window)
 
-            if winnerFound(board):
+            if valid_play:
+                printBoard_cli(board)
+                printBoard_gui(board, window, players, playerSymbols)
+
+                if winnerFound(board):
                     print("Player " + current_player + " won!")
                     current_state = "GAMEOVER"
+                    printEndMenu_gui(window, players.index(current_player)+1)
+                elif noOneWins(board):
+                    print("It's a draw!")
+                    current_state = "GAMEOVER"
+                    printEndMenu_gui(window, 0)
 
-            current_player = switchPlayer(players, current_player)
+                current_player = switchPlayer(players, current_player)
 
         elif current_state == "GAMEOVER":
-            option = input("Press S to start again. Any other key to exit.").upper()
-            if option == "S":
-                print("Cool! Starting a new game!")
-                board, current_player = setupGame(board, current_player, players)
-                printBoard_cli(board)
-                current_state = "GAME"
-            else:
-                exit()
+            #option = input("Press S to start again. Any other key to exit.").upper()
+            valid_input = False
+            valid_input, option = getMenuInput_gui(window)
+            if valid_input:
+                if option == "S":
+                    print("Cool! Starting a new game!")
+                    board, current_player = setupGame(board, current_player, players)
+                    printBoard_gui(board, window, players, playerSymbols)
+                    printBoard_cli(board)
+                    current_state = "GAME"
+                else :
+                    exit()
 
         if current_state != previous_state:
             print("Switching from state "+ previous_state + " to " + current_state)
