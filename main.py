@@ -10,8 +10,8 @@ if __name__ == "__main__":
     while(True):
 
         if current_state == "MENU":
-            option = input("Press S to start playing. Any other key to exit.")
-            if option == "S" or option == "s":
+            option = input("Press S to start playing. Any other key to exit.").upper()
+            if option == "S":
                 current_state = "GAME"
             else:
                 exit()
